@@ -295,20 +295,20 @@ export default async function handler(request: Request) {
   const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
   if (PRIVATE_KEY === undefined) {
-    throw new Error("Missing Environment Variable");
+    return new Error("Missing Environment Variable");
   }
 
   let body = await request.json();
 
   const chain = body.chain;
   console.log("Chain: ", chain);
-  if (chain === null || chain === undefined || chain.length < 3) throw new Response("Missing Chain in Body", { status: 400, headers });
+  if (chain === null || chain === undefined || chain.length < 3) return new Response("Missing Chain in Body", { status: 400, headers });
 
   const token = body.token;
-  if (token === null || token === undefined || !isAddress(token)) throw new Response("Missing Token in Body", { status: 400, headers });
+  if (token === null || token === undefined || !isAddress(token)) return new Response("Missing Token in Body", { status: 400, headers });
 
   const address = body.address;
-  if (address === null || address === undefined || !isAddress(address)) throw new Response("Missing Address in Body", { status: 400, headers });
+  if (address === null || address === undefined || !isAddress(address)) return new Response("Missing Address in Body", { status: 400, headers });
   
   if (!["calypso", "chaos", "europa", "nebula", "titan"].includes(chain)) {
     throw new Response(
