@@ -18,7 +18,8 @@ import {
   privateKeyToAccount
 } from "viem/accounts";
 
-const erc20ABI = export const erc20ABI = [
+/** Thank you to Wagmi for this ABI */
+const erc20ABI = [
   {
     type: 'event',
     name: 'Approval',
