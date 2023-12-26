@@ -357,13 +357,17 @@ export default async function handler(request: Request) {
   const SFUEL_THRESHOLD = parseEther("0.0005");
 
   const tokenTransactionHash= await walletClient.writeContract(simulationResult.request);
-  const userSFuelBalance = await publicClient.getBalance(address as any);
+  const userSFuelBalance = await publicClient.getBalance({
+    address
+  });
   
   let sfuelTxHash;
   if (userSFuelBalance < SFUEL_THRESHOLD) {
     let sfuelRequestAmount = SFUEL_THRESHOLD - userSFuelBalance;
 
-    const signerSFuelBalance = await publicClient.getBalance(account.address as any);
+    const signerSFuelBalance = await publicClient.getBalance({
+      address: account.address
+    });
     if (signerSFuelBalance < SFUEL_THRESHOLD) return new Response("Signer Out of sFUEL on " + publicClient?.chain?.name, { status: 500, headers });
 
     await walletClient.sendTransaction({
