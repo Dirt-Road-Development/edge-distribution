@@ -1,6 +1,8 @@
 import {
   Account,
   Chain,
+  PublicClient,
+  WalletClient,
   createPublicClient,
   createWalletClient,
   getAddress,
@@ -247,7 +249,7 @@ const createClient = (chain: string, account: `0x${string}` | Account) => {
       break;
   }
 
-  if (selectedChain === undefined) throw new Error("Invalid Chain");
+  if (selectedChain === undefined) return new Error("Invalid Chain");
 
   const publicClient = createPublicClient({
     chain: selectedChain,
@@ -311,7 +313,7 @@ export default async function handler(request: Request) {
   if (address === null || address === undefined || !isAddress(address)) return new Response("Missing Address in Body", { status: 400, headers });
   
   if (!["calypso", "chaos", "europa", "nebula", "titan"].includes(chain)) {
-    throw new Response(
+    return new Response(
       "Invalid Chain Name",
       {
         status: 400,
@@ -321,10 +323,11 @@ export default async function handler(request: Request) {
   }
   
   const account = privateKeyToAccount(PRIVATE_KEY.startsWith("0x") ? PRIVATE_KEY as `0x${string}` : `0x${PRIVATE_KEY}`);
-  const { publicClient, walletClient } = createClient(chain, account);
+  const { publicClient, walletClient } = createClient(chain, account) as { publicClient: PublicClient, walletClient: WalletClient };
+
   const chainId = await publicClient.getChainId();
 
-  if (!isValidToken(token, chainId)) throw new Response("Token not supported", { status: 400, headers });
+  if (!isValidToken(token, chainId)) return new Response("Token not supported", { status: 400, headers });
 
   const contract = getContract({
     address: getAddress(token, chainId),
@@ -332,7 +335,7 @@ export default async function handler(request: Request) {
     publicClient
   });
 
-  const userBalance = await contract.read.balanceOf(address);
+  const userBalance = await contract.read.balanceOf(address as any);
   const THRESHOLD = parseEther("1");
 
   if (userBalance > THRESHOLD) {
@@ -354,18 +357,20 @@ export default async function handler(request: Request) {
   const SFUEL_THRESHOLD = parseEther("0.0005");
 
   const tokenTransactionHash= await walletClient.writeContract(simulationResult.request);
-  const userSFuelBalance = await publicClient.getBalance(address);
+  const userSFuelBalance = await publicClient.getBalance(address as any);
   
   let sfuelTxHash;
   if (userSFuelBalance < SFUEL_THRESHOLD) {
     let sfuelRequestAmount = SFUEL_THRESHOLD - userSFuelBalance;
 
     const signerSFuelBalance = await publicClient.getBalance(account.address as any);
-    if (signerSFuelBalance < SFUEL_THRESHOLD) throw new Response("Signer Out of sFUEL on " + publicClient.chain.name, { status: 500, headers });
+    if (signerSFuelBalance < SFUEL_THRESHOLD) return new Response("Signer Out of sFUEL on " + publicClient?.chain?.name, { status: 500, headers });
 
     await walletClient.sendTransaction({
-      to: address,
-      value: sfuelRequestAmount
+      account,
+      to: address as any,
+      value: sfuelRequestAmount,
+      chain: publicClient?.chain
     });
   }
 
