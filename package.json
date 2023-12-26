@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "npx vercel dev"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -17,7 +14,6 @@
     "@upstash/ratelimit": "^1.0.0",
     "@vercel/edge": "^1.1.1",
     "@vercel/kv": "^1.0.1",
-    "viem": "^1.21.0",
-    "wagmi": "^1.4.12"
+    "viem": "^1.21.0"
   }
 }
