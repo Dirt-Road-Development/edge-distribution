@@ -1,6 +1,8 @@
 import {
+  Account,
   Chain,
   createPublicClient,
+  createWalletClient,
   getAddress,
   getContract,
   parseEther,
@@ -27,7 +29,7 @@ export const config = {
   runtime: "edge",
 };
  
-const createClient = (chain: string) => {
+const createClient = (chain: string, account: `0x${string}` | Account) => {
   let selectedChain: Chain | undefined = undefined;
 
   switch (chain) {
@@ -50,10 +52,18 @@ const createClient = (chain: string) => {
 
   if (selectedChain === undefined) throw new Error("Invalid Chain");
 
-  return createPublicClient({
+  const publicClient = createPublicClient({
     chain: selectedChain,
-    transport: webSocket(selectedChain.rpcUrls.public.webSocket![0])
+    transport: webSocket(selectedChain.rpcUrls.public.webSocket![0]),
   });
+
+  const walletClient = createWalletClient({
+    chain: selectedChain,
+    transport: webSocket(selectedChain.rpcUrls.public.webSocket![0]),
+    account
+  });
+
+  return { publicClient, walletClient };
 }
 
 const isValidToken = (address: string, chainId: number) : boolean => {
@@ -84,6 +94,12 @@ const isValidToken = (address: string, chainId: number) : boolean => {
 }
 
 export default async function handler(request: Request) {
+  
+  const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+  if (PRIVATE_KEY === undefined) {
+    throw new Error("Missing Environment Variable");
+  }
 
   let body = await request.json();
 
@@ -101,28 +117,41 @@ export default async function handler(request: Request) {
     );
   }
   
-  const client = createClient(chain);
-  const chainId = await client.getChainId();
+  const account = privateKeyToAccount(PRIVATE_KEY.startsWith("0x") ? PRIVATE_KEY as `0x${string}` : `0x${PRIVATE_KEY}`);
+  const { publicClient, walletClient } = createClient(chain, account);
+  const chainId = await publicClient.getChainId();
 
   if (!isValidToken(token, chainId)) throw new Response("Token not supported", { status: 400, headers });
 
   const contract = getContract({
-    address: getAddress(address, chainId),
+    address: getAddress(token, chainId),
     abi: erc20ABI,
-    publicClient: client
+    publicClient
   });
 
   const userBalance = await contract.read.balanceOf(address);
   const THRESHOLD = parseEther("1");
 
   if (userBalance > THRESHOLD) {
-    await contract.
+    return new Response("Token Balance Already Sufficient", { status: 200, headers });
   }
-  
+
+  const simulationResult  = await publicClient.simulateContract({
+    address: contract.address,
+    abi: contract.abi,
+    functionName: "transfer",
+    args: [address, THRESHOLD - userBalance],
+    account
+  });
+
+  const txHash = await walletClient.writeContract(simulationResult.request);
 
  
   return new Response(
-    "Success",
+    JSON.stringify({
+      message: "Success",
+      txHash
+    }),
     {
       status: 200,
       headers
