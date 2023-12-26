@@ -332,21 +332,44 @@ export default async function handler(request: Request) {
     return new Response("Token Balance Already Sufficient", { status: 200, headers });
   }
 
+  let requestAmount = THRESHOLD - userBalance;
+  const activeSignerBalance = await contract.read.balanceOf(account.address as any);
+
+  if (activeSignerBalance < requestAmount) requestAmount = activeSignerBalance;
+
   const simulationResult  = await publicClient.simulateContract({
     address: contract.address,
     abi: contract.abi,
     functionName: "transfer",
-    args: [address, THRESHOLD - userBalance],
+    args: [address, requestAmount],
     account
   });
+  const SFUEL_THRESHOLD = parseEther("0.0005");
 
-  const txHash = await walletClient.writeContract(simulationResult.request);
+  const tokenTransactionHash= await walletClient.writeContract(simulationResult.request);
+  const userSFuelBalance = await publicClient.getBalance(address);
+  
+  let sfuelTxHash;
+  if (userSFuelBalance < SFUEL_THRESHOLD) {
+    let sfuelRequestAmount = SFUEL_THRESHOLD - userSFuelBalance;
+
+    const signerSFuelBalance = await publicClient.getBalance(account.address as any);
+    if (signerSFuelBalance < SFUEL_THRESHOLD) throw new Response("Signer Out of sFUEL on " + publicClient.chain.name, { status: 500, headers });
+
+    await walletClient.sendTransaction({
+      to: address,
+      value: sfuelRequestAmount
+    });
+  }
 
  
   return new Response(
     JSON.stringify({
       message: "Success",
-      txHash
+      transactions: {
+        token: tokenTransactionHash,
+        sfuel: sfuelTxHash
+      } 
     }),
     {
       status: 200,
