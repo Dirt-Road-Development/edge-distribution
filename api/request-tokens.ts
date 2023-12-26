@@ -335,7 +335,7 @@ export default async function handler(request: Request) {
     publicClient
   });
 
-  const userBalance = await contract.read.balanceOf(address as any);
+  const userBalance = await contract.read.balanceOf([address]);
   const THRESHOLD = parseEther("1");
 
   if (userBalance > THRESHOLD) {
