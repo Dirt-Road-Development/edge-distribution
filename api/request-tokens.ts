@@ -343,7 +343,7 @@ export default async function handler(request: Request) {
   }
 
   let requestAmount = THRESHOLD - userBalance;
-  const activeSignerBalance = await contract.read.balanceOf(account.address as any);
+  const activeSignerBalance = await contract.read.balanceOf([account.address]);
 
   if (activeSignerBalance < requestAmount) requestAmount = activeSignerBalance;
 
