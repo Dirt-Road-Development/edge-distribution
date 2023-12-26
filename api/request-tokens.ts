@@ -300,8 +300,13 @@ export default async function handler(request: Request) {
   let body = await request.json();
 
   const chain = body.chain;
+  if (!chain) throw new Response("Missing Chain in Body", { status: 400, headers });
+
   const token = body.token;
+  if (!token) throw new Response("Missing Token in Body", { status: 400, headers });
+
   const address = body.address;
+  if (!address) throw new Response("Missing Address in Body", { status: 400, headers });
   
   if (!["calypso", "chaos", "europa", "nebula", "titan"].includes(chain)) {
     throw new Response(
