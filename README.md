@@ -26,4 +26,4 @@ All contracts, code, examples, test are WITHOUT ANY WARRANTY; without even the i
 
 ### License
 
-See [License](./LICENSE) in License.
+See [License](./LICENSE) in License
