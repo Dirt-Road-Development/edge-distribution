@@ -106,13 +106,16 @@ export default async function handler(request: Request) {
 
   /** Check for Active Signer Balance **/
   if (activeSignerBalance < requestAmount) requestAmount = activeSignerBalance;
-  
+
+  let nonce = await publicClient.getTransactionCount({ address: account.address });
+
   /** Runs Contract for Gas Estimation */
   const simulationResult  = await publicClient.simulateContract({
     address: contract.address,
     abi: contract.abi,
     functionName: "transfer",
     args: [address, requestAmount],
+    nonce: nonce++,
     account
   });
   
@@ -148,7 +151,8 @@ export default async function handler(request: Request) {
       account,
       to: address as any,
       value: sfuelRequestAmount,
-      chain: publicClient?.chain
+      chain: publicClient?.chain,
+      nonce
     });
   }
 
