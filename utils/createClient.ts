@@ -3,6 +3,7 @@ import {
   skaleCalypsoTestnet,
   skaleChaosTestnet,
   skaleEuropaTestnet,
+  skaleNebulaTestnet,
   skaleTitanTestnet
 } from "viem/chains";
 
@@ -20,7 +21,7 @@ export default function createClient(chain: string, account: `0x${string}` | Acc
       selectedChain = skaleEuropaTestnet;
       break;
     case "nebula":
-      selectedChain = skaleEuropaTestnet;
+      selectedChain = skaleNebulaTestnet;
       break;
     case "titan":
       selectedChain = skaleTitanTestnet;
