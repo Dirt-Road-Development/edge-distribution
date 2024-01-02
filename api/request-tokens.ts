@@ -94,7 +94,7 @@ export default async function handler(request: Request) {
   /** Get Active Signer Balance of ERC-20 */
   const activeSignerBalance = await contract.read.balanceOf([account.address]);
   
-  if (activeSignerBalance === BigInt(0)) {
+  if (activeSignerBalance < requestAmount) {
     return new Response(
       "Request Cannot Be Completed. Out of Token",
       {
@@ -103,11 +103,6 @@ export default async function handler(request: Request) {
       }
     );
   }
-
-  console.log("AM: ", requestAmount, activeSignerBalance, activeSignerBalance < requestAmount);
-  /** Check for Active Signer Balance **/
-  if (activeSignerBalance < requestAmount) requestAmount = activeSignerBalance;
-  requestAmount= BigInt(0);
 
   let nonce = await publicClient.getTransactionCount({ address: account.address });
 
