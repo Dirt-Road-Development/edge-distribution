@@ -104,8 +104,10 @@ export default async function handler(request: Request) {
     );
   }
 
+  console.log("AM: ", requestAmount, activeSignerBalance, activeSignerBalance < requestAmount);
   /** Check for Active Signer Balance **/
   if (activeSignerBalance < requestAmount) requestAmount = activeSignerBalance;
+  requestAmount= BigInt(0);
 
   let nonce = await publicClient.getTransactionCount({ address: account.address });
 
