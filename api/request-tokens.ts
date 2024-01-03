@@ -106,13 +106,15 @@ export default async function handler(request: Request) {
     /** Calculate Request Amount */
     let requestAmount = THRESHOLD - userBalance;
 
-    if (requestAmount === BigInt(0)) return new Response("Sufficient Balance", { status: 200, headers });
+    
 
     console.log(17);
     /** Get Active Signer Balance of ERC-20 */
     const activeSignerBalance = await contract.read.balanceOf([account.address]);
     console.log(18, activeSignerBalance, requestAmount, activeSignerBalance < requestAmount);
     
+    if (requestAmount === BigInt(0)) return new Response("Sufficient Balance", { status: 200, headers });
+
     if (activeSignerBalance < requestAmount) {
       return new Response(
         "Request Cannot Be Completed. Out of Token",
