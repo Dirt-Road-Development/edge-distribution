@@ -108,7 +108,7 @@ export default async function handler(request: Request) {
     console.log(17);
     /** Get Active Signer Balance of ERC-20 */
     const activeSignerBalance = await contract.read.balanceOf([account.address]);
-    console.log(18);
+    console.log(18, activeSignerBalance, requestAmount, activeSignerBalance < requestAmount);
     
     if (activeSignerBalance < requestAmount) {
       return new Response(
